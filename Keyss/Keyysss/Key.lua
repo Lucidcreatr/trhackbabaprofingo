@@ -72,7 +72,7 @@ button.MouseButton1Click:Connect(function()
 
 			-- 📥 Hile kodunu dışardan çekip çalıştır
 			local success, result = pcall(function()
-				return loadstring(game:HttpGet("https://pastebin.com/raw/DEĞİŞTİR_BU_LINKİ"))()
+				return loadstring(game:HttpGet("https://raw.githubusercontent.com/Lucidcreatr/fpsdefusa/refs/heads/main/Scripts/merhaba2.lua"))()
 			end)
 
 			if not success then
