@@ -1,10 +1,16 @@
+-- ⚙️ HİZMETLER
+local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
-local player = game:GetService("Players").LocalPlayer
+local player = Players.LocalPlayer
 
-local KEY_LIFETIME = 86400
-local charset = {} 
-for i = 48, 57 do table.insert(charset, string.char(i)) end
-for i = 65, 90 do table.insert(charset, string.char(i)) end
+-- 📅 KEY SÜRESİ (1 GÜN)
+local KEY_LIFETIME = 24 * 60 * 60
+local keyCreatedTime = os.time()
+
+-- 🔐 KEY ÜRETİCİ
+local charset = {}
+for i = 48, 57 do table.insert(charset, string.char(i)) end -- 0-9
+for i = 65, 90 do table.insert(charset, string.char(i)) end -- A-Z
 
 local function generateKey(length)
 	local key = ""
@@ -15,65 +21,75 @@ local function generateKey(length)
 end
 
 local generatedKey = generateKey(12)
-local keyCreatedTime = os.time()
-local webhookURL = "https://discord.com/api/webhooks/1384601700131672225/IYzkevmhlUMzCFk6WmuP6Zprv_P-hd8VEtWttv7DPowWiJ9gHtZGPFRLMBzc3JeW4thO"
+
+-- 🧪 TEST EKRANINA YAZ
+print("KEY:", generatedKey)
+
+-- 🌐 WEBHOOK
+local webhookURL = "https://discord.com/api/webhooks/1384625088644776077/5cmgcEis2RcIr3W5bD9U0712tkCwjRECM6uAM2uOPK8tl4a_HlLTC1-Tr6E90WZVR2YI"
 
 local function sendWebhook(title, desc, color)
-	local data = {
-		content = "**Key Sistemi Bildirimi**",
-		embeds = {{
-			title = title,
-			description = desc,
-			color = color
-		}}
-	}
-	pcall(function()
-		HttpService:PostAsync(webhookURL, HttpService:JSONEncode(data))
+	local success, err = pcall(function()
+		HttpService:PostAsync(
+			webhookURL,
+			HttpService:JSONEncode({
+				content = "**Key Sistemi Bildirimi**",
+				embeds = {{
+					title = title,
+					description = desc,
+					color = color
+				}}
+			}),
+			Enum.HttpContentType.ApplicationJson
+		)
 	end)
+	if not success then warn("Webhook hatası:", err) end
 end
 
 sendWebhook("🔑 Yeni Key Oluşturuldu", "Kullanıcı: **" .. player.Name .. "**\nKey: `" .. generatedKey .. "`\nGeçerlilik: 24 saat", 3447003)
 
--- GUI
-local gui = Instance.new("ScreenGui")
+-- 📺 GUI
+local gui = Instance.new("ScreenGui", game.CoreGui)
 gui.Name = "KeySystem"
-gui.ResetOnSpawn = false
-gui.Parent = game:GetService("CoreGui")
 
-local frame = Instance.new("Frame", gui)
-frame.Position = UDim2.new(0.5, -100, 0.5, -50)
-frame.Size = UDim2.new(0, 200, 0, 100)
-frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 250, 0, 150)
+frame.Position = UDim2.new(0.5, -125, 0.5, -75)
+frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+frame.Parent = gui
 
-local textbox = Instance.new("TextBox", frame)
-textbox.Position = UDim2.new(0, 10, 0, 10)
-textbox.Size = UDim2.new(1, -20, 0, 30)
-textbox.PlaceholderText = "Key Gir..."
-textbox.TextColor3 = Color3.new(1,1,1)
-textbox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+local textbox = Instance.new("TextBox")
+textbox.PlaceholderText = "Key Giriniz..."
+textbox.Size = UDim2.new(1, -20, 0, 40)
+textbox.Position = UDim2.new(0, 10, 0, 20)
+textbox.TextColor3 = Color3.new(1, 1, 1)
+textbox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+textbox.Parent = frame
 
-local button = Instance.new("TextButton", frame)
-button.Position = UDim2.new(0, 10, 0, 50)
-button.Size = UDim2.new(1, -20, 0, 30)
+local button = Instance.new("TextButton")
 button.Text = "Doğrula"
-button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+button.Size = UDim2.new(1, -20, 0, 30)
+button.Position = UDim2.new(0, 10, 0, 70)
+button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 button.TextColor3 = Color3.new(1, 1, 1)
+button.Parent = frame
 
+-- ✅ BUTON FONKSİYONU
 button.MouseButton1Click:Connect(function()
-	if textbox.Text == generatedKey then
+	local key = textbox.Text
+	if key == generatedKey then
 		if os.time() - keyCreatedTime <= KEY_LIFETIME then
-			sendWebhook("✅ Key Doğrulandı", "Kullanıcı: **" .. player.Name .. "**\nKey: `" .. textbox.Text .. "`", 3066993)
+			button.Text = "✅ Doğru"
 			gui:Destroy()
+			sendWebhook("✅ Key Doğrulandı", "Kullanıcı: **" .. player.Name .. "**\nKey: `" .. key .. "`", 3066993)
 
+			-- 📥 Hileyi çek ve çalıştır
 			local success, result = pcall(function()
-				return loadstring(game:HttpGet("https://raw.githubusercontent.com/Lucidcreatr/fpsdefusa/refs/heads/main/Scripts/merhaba2.lua"))()
+				return loadstring(game:HttpGet("https://github.com/Lucidcreatr/fpsdefusa/blob/main/Scripts/merhaba2.lua"))()
 			end)
-
-			if not success then
-				warn("Hile scripti yüklenemedi: " .. tostring(result))
-			end
+			if not success then warn("Hile yüklenemedi:", result) end
 		else
-			button.Text = "⏰ Key Süresi Doldu"
+			button.Text = "⏰ Süre Doldu"
 			sendWebhook("❌ Key Süresi Doldu", "Kullanıcı: **" .. player.Name .. "**", 15158332)
 		end
 	else
