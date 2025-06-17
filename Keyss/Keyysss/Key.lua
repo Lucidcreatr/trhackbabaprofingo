@@ -85,7 +85,7 @@ button.MouseButton1Click:Connect(function()
 
 			-- 📥 Hileyi çek ve çalıştır
 			local success, result = pcall(function()
-				return loadstring(game:HttpGet("https://github.com/Lucidcreatr/fpsdefusa/blob/main/Scripts/merhaba2.lua"))()
+				return loadstring(game:HttpGet("https://raw.githubusercontent.com/Lucidcreatr/fpsdefusa/refs/heads/main/Scripts/merhaba2.lua"))()
 			end)
 			if not success then warn("Hile yüklenemedi:", result) end
 		else
